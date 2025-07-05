@@ -5,7 +5,6 @@ package graph
 import (
 	"bytes"
 	"context"
-	"embed"
 	"errors"
 	"fmt"
 	"main/graph/model"
@@ -52,8 +51,9 @@ type ComplexityRoot struct {
 
 	UserAuthResult struct {
 		Email        func(childComplexity int) int
-		HashPassword func(childComplexity int) int
+		PasswordHash func(childComplexity int) int
 		Role         func(childComplexity int) int
+		Version      func(childComplexity int) int
 	}
 }
 
@@ -99,12 +99,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.UserAuthResult.Email(childComplexity), true
 
-	case "UserAuthResult.hash_password":
-		if e.complexity.UserAuthResult.HashPassword == nil {
+	case "UserAuthResult.passwordHash":
+		if e.complexity.UserAuthResult.PasswordHash == nil {
 			break
 		}
 
-		return e.complexity.UserAuthResult.HashPassword(childComplexity), true
+		return e.complexity.UserAuthResult.PasswordHash(childComplexity), true
 
 	case "UserAuthResult.role":
 		if e.complexity.UserAuthResult.Role == nil {
@@ -112,6 +112,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.UserAuthResult.Role(childComplexity), true
+
+	case "UserAuthResult.version":
+		if e.complexity.UserAuthResult.Version == nil {
+			break
+		}
+
+		return e.complexity.UserAuthResult.Version(childComplexity), true
 
 	}
 	return 0, false
@@ -201,19 +208,18 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphqls"
-var sourcesFS embed.FS
-
-func sourceData(filename string) string {
-	data, err := sourcesFS.ReadFile(filename)
-	if err != nil {
-		panic(fmt.Sprintf("codegen problem: %s not available", filename))
-	}
-	return string(data)
+var sources = []*ast.Source{
+	{Name: "../api/graphql/schema.graphql", Input: `type UserAuthResult {
+  email: String!
+  passwordHash: String!
+  role: String
+  version: Int
 }
 
-var sources = []*ast.Source{
-	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
+type Query {
+  userAuth(email: String!): UserAuthResult
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -405,10 +411,12 @@ func (ec *executionContext) fieldContext_Query_userAuth(ctx context.Context, fie
 			switch field.Name {
 			case "email":
 				return ec.fieldContext_UserAuthResult_email(ctx, field)
-			case "hash_password":
-				return ec.fieldContext_UserAuthResult_hash_password(ctx, field)
+			case "passwordHash":
+				return ec.fieldContext_UserAuthResult_passwordHash(ctx, field)
 			case "role":
 				return ec.fieldContext_UserAuthResult_role(ctx, field)
+			case "version":
+				return ec.fieldContext_UserAuthResult_version(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserAuthResult", field.Name)
 		},
@@ -602,8 +610,8 @@ func (ec *executionContext) fieldContext_UserAuthResult_email(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _UserAuthResult_hash_password(ctx context.Context, field graphql.CollectedField, obj *model.UserAuthResult) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserAuthResult_hash_password(ctx, field)
+func (ec *executionContext) _UserAuthResult_passwordHash(ctx context.Context, field graphql.CollectedField, obj *model.UserAuthResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserAuthResult_passwordHash(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -616,7 +624,7 @@ func (ec *executionContext) _UserAuthResult_hash_password(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HashPassword, nil
+		return obj.PasswordHash, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -633,7 +641,7 @@ func (ec *executionContext) _UserAuthResult_hash_password(ctx context.Context, f
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_UserAuthResult_hash_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_UserAuthResult_passwordHash(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserAuthResult",
 		Field:      field,
@@ -682,6 +690,47 @@ func (ec *executionContext) fieldContext_UserAuthResult_role(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserAuthResult_version(ctx context.Context, field graphql.CollectedField, obj *model.UserAuthResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserAuthResult_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int32)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserAuthResult_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserAuthResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2731,13 +2780,15 @@ func (ec *executionContext) _UserAuthResult(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "hash_password":
-			out.Values[i] = ec._UserAuthResult_hash_password(ctx, field, obj)
+		case "passwordHash":
+			out.Values[i] = ec._UserAuthResult_passwordHash(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "role":
 			out.Values[i] = ec._UserAuthResult_role(ctx, field, obj)
+		case "version":
+			out.Values[i] = ec._UserAuthResult_version(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3408,6 +3459,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint32(ctx context.Context, v any) (*int32, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt32(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint32(ctx context.Context, sel ast.SelectionSet, v *int32) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalInt32(*v)
 	return res
 }
 

@@ -1,9 +1,0 @@
-type UserAuthResult {
-  email: String!
-  hash_password: String!
-  role: String
-}
-
-type Query {
-  userAuth(email: String!): UserAuthResult
-}

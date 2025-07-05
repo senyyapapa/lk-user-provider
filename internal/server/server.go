@@ -39,11 +39,11 @@ func NewServer(db database.Database) *Server {
 	}
 }
 
-func (server *Server) Start(addr string, port string) {
+func (server *Server) Start(addr string) {
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", server.schema)
 
-	log.Printf("Запуск HTTP сервера по адресу %s", addr)
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Printf("Запуск HTTP сервера по адресу '%s'", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }

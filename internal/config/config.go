@@ -2,14 +2,15 @@ package config
 
 import (
 	"flag"
-	"github.com/ilyakaznacheev/cleanenv"
 	"os"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
 	Env  string `yaml:"env" env-default:"local"`
-	URL  string `yaml: "url"`
-	Port string `yaml: "port"`
+	URL  string `yaml:"url"`
+	Port string `yaml:"port"`
 }
 
 func MustLoad() *Config {

@@ -7,6 +7,7 @@ type Query struct {
 
 type UserAuthResult struct {
 	Email        string  `json:"email"`
-	HashPassword string  `json:"hash_password"`
+	PasswordHash string  `json:"passwordHash"`
 	Role         *string `json:"role,omitempty"`
+	Version      *int32  `json:"version,omitempty"`
 }

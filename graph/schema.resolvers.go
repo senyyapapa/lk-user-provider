@@ -14,8 +14,9 @@ func (r *queryResolver) UserAuth(ctx context.Context, email string) (*model.User
 	student := r.DB.AuthUser(email)
 	return &model.UserAuthResult{
 		Email:        student.Email,
-		HashPassword: student.HashPassword,
+		PasswordHash: student.PasswordHash,
 		Role:         &student.Role,
+		Version:      &student.Version,
 	}, nil
 }
 

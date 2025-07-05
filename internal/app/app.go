@@ -20,6 +20,6 @@ func New(config *config.Config, db_url string) *App {
 	}
 }
 func (a *App) Run() error {
-	a.server.Start(a.config.URL+a.config.Port, a.config.Port)
+	a.server.Start(a.config.URL + ":" + a.config.Port)
 	return nil
 }
