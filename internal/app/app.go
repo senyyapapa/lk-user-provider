@@ -40,8 +40,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log *slog.
 
 func (a *App) Run() error {
 	a.log.Info("Запуск HTTP сервера по адресу: '" + a.cfg.URL + ":" + a.cfg.Port + "'...")
-	a.server.Start(a.cfg.Env, a.cfg.URL+":"+a.cfg.Port)
-	return nil
+	return a.server.Start(a.cfg.Env, a.cfg.URL+":"+a.cfg.Port)
 }
 
 func (a *App) ShutDown(shutDownCtx context.Context) error {

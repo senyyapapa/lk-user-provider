@@ -25,6 +25,7 @@ func main() {
 
 	log := setupLogger(cfg)
 	log.Info("Start application...")
+
 	ongoingCtx, stopOngoingGraceful := context.WithCancel(context.Background())
 	wg := &sync.WaitGroup{}
 
@@ -45,7 +46,6 @@ func main() {
 			if err != nil {
 				log.Error("Ошибка при запуске приложения.", sl.Err(err))
 				stop()
-
 			}
 		}
 	}()

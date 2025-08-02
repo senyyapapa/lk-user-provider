@@ -2,17 +2,18 @@ package server
 
 import (
 	"context"
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/lru"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/vektah/gqlparser/v2/ast"
 	"log/slog"
 	"main/graph"
 	"main/internal/database"
 	"net"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 type Server struct {
@@ -40,6 +41,11 @@ func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Boo
 
 	router := http.NewServeMux()
 
+	// router.Handle("/",
+	//            middleware.Chain(playground.Handler("GraphQL playground", "/query"),
+	//                    middleware.Logging(log)),
+	// )
+
 	router.Handle("/query", schema)
 
 	return &Server{
@@ -50,7 +56,7 @@ func NewServer(ctx context.Context, log *slog.Logger, isShuttingDown *atomic.Boo
 	}
 }
 
-func (s *Server) Start(env string, addr string) {
+func (s *Server) Start(env string, addr string) error {
 	s.server = &http.Server{
 		Addr:    addr,
 		Handler: s.router,
@@ -62,8 +68,10 @@ func (s *Server) Start(env string, addr string) {
 	err := s.server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		s.log.Error("failed to start server", "error", err)
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 func (s *Server) ShutDown(shutDownCtx context.Context) error {

@@ -1,3 +1,5 @@
+//go:generate go run github.com/first-debug/lk-tools/schema-fetcher -url first-debug/lk-graphql-schemas/master/schemas/user-provider/schema.graphql -output schema.graphqls
+//go:generate go run github.com/99designs/gqlgen
 package graph
 
 import "main/internal/database"
